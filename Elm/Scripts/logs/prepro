@@ -1,0 +1,32 @@
+scc-520
+My SGE_TASK_ID:  1
+/var/spool/sge/scc-520/job_scripts/1096770: line 15: proj: command not found
+sed: can't read sample_.txt: No such file or directory
+SAMPLE: 
+------------------------------------------------------------------------------
+WARNING:
+You do not have a .condarc file in your home directory. This file is used
+to configure the default location for conda environments and packages. By
+default conda will store its environments and download packages in your
+home directory. Home directory quotas are limited to 10GB and this is easily
+reached with the installation of a few conda environments.
+
+Before using conda on the SCC run this script to create a default .condarc
+file that will use your /projectnb directory for storage:
+
+    setup_scc_condarc.sh
+
+The ~/.condarc file can be edited if needed, although the recommended method is
+to use the "conda config" command. For more information, see this page:
+https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html
+
+For more information on the .condarc file and the SCC please see:
+https://www.bu.edu/tech/support/research/software-and-programming/common-languages/python/python-software/miniconda-modules/
+------------------------------------------------------------------------------ 
+hts_Stats -L /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'initial stats' -1 /restricted/projectnb/challenge2025/Data//_1.fastq.gz -2 /restricted/projectnb/challenge2025/Data//_2.fastq.gz | hts_SeqScreener -r -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'screen phix' | hts_SeqScreener -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'count the number of rRNA reads' -r -s /restricted/projectnb/challenge2025/sgRNAtor/Elm//References/human_rRNA.fasta | hts_AdapterTrimmer -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'trim adapters' | hts_QWindowTrim -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'quality trim the ends of reads' | hts_NTrimmer -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'remove any remaining N bases' | hts_LengthFilter -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'remove reads < 30 bp' -n -m 30 | hts_Stats -A /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//.json -N 'final stats' -f /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//
+ERROR: File /restricted/projectnb/challenge2025/Data//_1.fastq.gz was not found.
+fastqc /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//_*fastq.gz --outdir /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro/ --dir /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro/
+Skipping '/restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro//_*fastq.gz' which didn't exist, or couldn't be read
+multiqc -i multiqc_ -o /restricted/projectnb/challenge2025/sgRNAtor/Elm//02-MultiQC -f /restricted/projectnb/challenge2025/sgRNAtor/Elm//01-HTStream_prepro/
+/var/spool/sge/scc-520/job_scripts/1096770: /restricted/projectnb/challenge2025/software/conda_envs/HTStream_v1.4.1/bin/multiqc: /usr3/graduate/bnjenner/.conda/envs/HTStream_v1.4.1/bin/python3.10: bad interpreter: Permission denied
+3
