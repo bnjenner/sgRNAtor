@@ -9,7 +9,7 @@ art=/restricted/projectnb/challenge2025/software/ART/art_src_MountRainier_Linux/
 #lens = (8418 4589 3737 3501 2778 2586 2300 2086 1714 422)
 counter = 0
 
-for fast in /restricted/projectnb/challenge2025/sgRNAtor/ardenix/syn_sgRNAs/fastas/*; do
-    $art -ss HSXt -i fast -o ./syn_sgRNAs-paired_end_com -l 150 -f 10 -p -m 3000 -s 50 -sam ### -m ${lens[counter]}
-    counter=$((counter + 1))
+#for fast in /restricted/projectnb/challenge2025/sgRNAtor/ardenix/syn_sgRNAs/fastas/*; do
+$art -ss HSXt -i /restricted/projectnb/challenge2025/sgRNAtor/ardenix/syn_sgRNAs/syn_sgRNAs.fa -o /restricted/projectnb/challenge2025/Data/ardenix_ART_illumina_400fc/ -l 150 -f 400 -p -m 500 -s 10 -sam 
+#counter=$((counter + 1))
 #../../software/ART/art_src_MountRainier_Linux/aln2bed.pl syn_sgRNAs-paired_end_com1.aln.bed syn_sgRNAs-paired_end_com1.aln syn_sgRNAs-paired_end_com2.aln
