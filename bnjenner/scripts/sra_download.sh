@@ -9,8 +9,9 @@
 start=`date +%s`
 echo $HOSTNAME
 
-sra_id="PRJNA741723"
-outpath="../../Data/${sra_id}"
+#sra_id="PRJNA741723"
+sra_id="PRJNA699398"
+outpath="/restricted/projectnb/challenge2025/Data"
 
 mkdir -p ${outpath}
 cd ${outpath}
