@@ -2,7 +2,7 @@
 #$ -l h_rt=24:00:00
 #$ -P challenge2025
 #$ -N periscope
-#$ -t 1-3
+#$ -t 1-11
 #$ -o logs/classify
 #$ -e logs/classify
 #$ -m bea
@@ -11,15 +11,17 @@ start=`date +%s`
 echo $HOSTNAME
 echo "My SGE_TASK_ID: " $SGE_TASK_ID
 
-threads=${OMP_NUM_THREADS}
-sample=`sed "${SGE_TASK_ID}q;d" ART_illumina_samples.txt`
+threads=${NSLOTS}
+echo "THREADS: ${threads}"
+
+sample=`sed "${SGE_TASK_ID}q;d" samples_PRJNA726840.txt`
 echo "SAMPLE: ${sample}"
 
 # Set / Create Directories
 export baseP=/restricted/projectnb/challenge2025/sgRNAtor/bnjenner
 export cwd=${baseP}/scripts
-export seqP=${baseP}/00-SimData
-export outP=${baseP}/01-Periscope_SimART/${sample}
+export seqP=${baseP}/00-RawData
+export outP=${baseP}/01-Periscope_RealIllumina/${sample}
 export refP=/restricted/projectnb/challenge2025/software/periscope/periscope/resources
 
 [[ -d ${outP} ]] || mkdir -p ${outP}
@@ -27,8 +29,8 @@ export refP=/restricted/projectnb/challenge2025/software/periscope/periscope/res
 module load miniconda/24.5.0
 conda activate /restricted/projectnb/challenge2025/software/conda_envs/periscope
 
-R1="${seqP}/${sample}_1.fq"
-R2="${seqP}/${sample}_2.fq"
+R1="${seqP}/${sample}_1.fastq.gz"
+R2="${seqP}/${sample}_2.fastq.gz"
 
 # Periscope Identify sgRNA
 call="periscope \
