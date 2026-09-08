@@ -1,6 +1,17 @@
 import os
 import gzip
-import editdistance
+import zlib
+
+#################################################
+# Reference files shipped inside the package
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+def bundled(name):
+	'''
+	Absolute path to a reference file shipped with sgRNAtor. Resolves inside the
+	installed package, so the defaults work from any working directory.
+	'''
+	return os.path.join(DATA_DIR, name)
 
 #################################################
 # Read Fasta file

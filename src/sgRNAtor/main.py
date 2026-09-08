@@ -14,9 +14,9 @@ def argparser():
 	parser = argparse.ArgumentParser(description="Identification and Quantification pipeline for sgRNA. Performs leader sequence matching and trimming, alignment with BWA, and generates sgRNA counts tables.")
 	parser.add_argument("fastq", help="Path to the input fastq file (R1 or SE)")
 	parser.add_argument("fastq2", help="Path to optional Read 2 fastq file", nargs="?")  # optional positional
-	parser.add_argument("--reference", "-R", type=str, required=True, help="Path to genome reference fasta file.")
-	parser.add_argument("--leader-fasta", "-L", type=str, required=True, help="Path to leader sequence multi fasta file. All sequences should be no greater than 64 bp long.")
-	parser.add_argument("--tss-bed", "-b", type=str, required=True, help="Path to sgRNA template switching sites bed file.")
+	parser.add_argument("--reference", "-R", type=str, default=utils.bundled("nCoV-2019.reference.fasta"), help="Path to genome reference fasta file. (default: bundled SARS-CoV-2 MN908947.3, ships pre-indexed)")
+	parser.add_argument("--leader-fasta", "-L", type=str, default=utils.bundled("leader_seq.fasta"), help="Path to leader sequence multi fasta file. All sequences should be no greater than 64 bp long. (default: bundled SARS-CoV-2 TRS-L sequences)")
+	parser.add_argument("--tss-bed", "-b", type=str, default=utils.bundled("sgRNA_template_switch_sites.bed"), help="Path to sgRNA template switching sites bed file. (default: bundled SARS-CoV-2 junctions)")
 	parser.add_argument("--threads", "-t", type=int, default=1, help="Number of threads to use (default: 1)")
 	parser.add_argument("--min-match", "-m", type=int, default=12, help="Minimum length of substring to match (default: 12)")
 	parser.add_argument("--max-edit", "-e", type=int, default=2, help="Maximum edit distance for a leader sequence match (default: 2)")
@@ -27,12 +27,15 @@ def argparser():
 	# Check Input Files
 	if not os.path.isfile(args.fastq):
 		raise RuntimeError(f"// ERROR: Fastq ({args.fastq}) does not exist")
-	if args.fastq2 is not None and not os.path.isfile(args.fastq):
+	if args.fastq2 is not None and not os.path.isfile(args.fastq2):
 		raise RuntimeError(f"// ERROR: Fastq Read 2 ({args.fastq2}) does not exist")
 
 	# Check Reference Files
 	if not os.path.isfile(args.reference):
 		raise RuntimeError(f"// ERROR: Fasta ({args.reference}) does not exist")
+	if not all(os.path.isfile(args.reference + ext) for ext in (".amb", ".ann", ".bwt", ".pac", ".sa")):
+		raise RuntimeError(f"// ERROR: {args.reference} is not BWA-indexed. Run:\n"
+						   f"       bwa index {args.reference}")
 	if not os.path.isfile(args.leader_fasta):
 		raise RuntimeError(f"// ERROR: Fasta ({args.leader_fasta}) does not exist")
 	if not os.path.isfile(args.tss_bed):
@@ -81,7 +84,7 @@ def main():
 	hts = prepro.preproHTStream()
 	hts.trimadapaters(input_fastq = fastq_files,
 					  output_prefix = args.output_prefix,
-					  threads=1)
+					  threads=args.threads)
 
 	# Create sgRNAsearch Object
 	print("// Initializing sgRNAsearch Object")

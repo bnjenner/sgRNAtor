@@ -30,7 +30,9 @@ class sgRNAquantify:
 					continue
 				cols = line.strip().split("\t")
 				
-				orf, pos = str(cols[3]), int(cols[1]) - 1
+				# BED start is 0-based; find_template_switches reports 1-based
+				# positions (reference_start + 1), so the junction is start + 1.
+				orf, pos = str(cols[3]), int(cols[1]) + 1
 				if pos in self.tss_dict:
 					raise RuntimeError(f"// ERROR: TSS bed file has duplicate start positions.")
 				
@@ -51,13 +53,14 @@ class sgRNAquantify:
 		# Assign sgRNAs to ORFs
 		for pos, counts in self.sgRNA_counts.items():
 			_assigned = False
-			for orf, info in self.tss_dict.items():
+			# tss_dict is keyed by junction POSITION; the ORF label is info["ORF"]
+			for tss_pos, info in self.tss_dict.items():
 
 				# Assign Counts and Read IDs
 				if utils.overlap(pos, info["Window"]):
-					self.tss_dict[orf]["Counts"] += counts["Counts"]
-					self.tss_dict[orf]["Reads"].extend(counts["Reads"])
-					self.sgRNA_counts[pos]["Assigned"] = orf
+					self.tss_dict[tss_pos]["Counts"] += counts["Counts"]
+					self.tss_dict[tss_pos]["Reads"].extend(counts["Reads"])
+					self.sgRNA_counts[pos]["Assigned"] = info["ORF"]
 					self.stat_counts["canonical"] += counts["Counts"]
 					_assigned = True
 					break

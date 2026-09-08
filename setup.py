@@ -35,19 +35,25 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="B. N. Jenner",
-    python_requires=">=3.10",
+    python_requires=">=3.12",   # stats.py/search.py use PEP 701 f-strings
 
     # ── Pure-Python dependencies (installable by pip) ──────────────────────
     install_requires=[
         "biopython>=1.85",
-        "editdistance>=0.8.1",
-        "numpy>=2.0",
         "pysam>=0.22",          # compiles C extensions; needs htslib headers
     ],
 
     # ── Package discovery ──────────────────────────────────────────────────
     package_dir={"": "src"},
     packages=find_packages(where="src"),
+
+    # ── Bundled reference data (defaults for -R / -L / -b) ─────────────────
+    package_data={"sgRNAtor": [
+        "data/*.fasta", "data/*.bed", "data/*.gtf",
+        # Pre-built BWA index for the bundled genome, so -R works out of the box
+        "data/*.amb", "data/*.ann", "data/*.bwt", "data/*.pac", "data/*.sa",
+    ]},
+    include_package_data=True,
 
     # ── CLI entry point ────────────────────────────────────────────────────
     entry_points={

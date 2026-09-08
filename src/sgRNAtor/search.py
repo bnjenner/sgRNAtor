@@ -12,9 +12,9 @@ from sgRNAtor import utils
 # Myers (1999) bit-vector approximate search.
 # Finds the 5'-most end position in `text` where the FULL `pattern` aligns with
 # Levenshtein distance <= max_edit. Free gaps before/after the pattern in the
-# text (fitting alignment) and full indel support -- unlike the substitution-only
-# bitap. Single O(len(text)) pass while pattern length <= machine word (leaders
-# are <= 64 bp). Returns (end_pos, distance) or None.
+# text (fitting alignment) and full indel support. Single O(len(text)) pass
+# while pattern length <= machine word (leaders are <= 64 bp).
+# Returns (end_pos, distance) or None.
 def _myers_search(pattern, text, max_edit):
 	m = len(pattern)
 	if m == 0:
@@ -90,10 +90,6 @@ class sgRNAsearch:
 		self.leader = utils.read_fasta(leader)
 		self.PE = PE
 
-		# Bitap Masks
-		self.pattern_mask = {}
-		self.initialized_mask = {}
-
 		# Library Stats
 		self.matches = 0
 		self.library_size = 0
@@ -129,69 +125,15 @@ class sgRNAsearch:
 
 
 	#################################
-	# Build leader sequence bitmasks
-	def __build_bitmask(self, min_match, max_edit):
+	# Validate leader sequences
+	def __validate_leaders(self):
 		'''
-		Builds bitmask of each leader sequence in fasta file. 
+		Myers packs a leader's DP column into a single machine word, so leaders
+		must fit in 64 bits.
 		'''
 		for header, seq in self.leader.items():
-
-			# Enforce leader seq length
 			if len(seq) > 64:
 				raise RuntimeError(f"ERROR: Leader Sequence {header} is longer than 64 nucleotides.")
-
-			# Initialize all possible bases (not just those in anchor)
-			self.pattern_mask[seq] = {c: ~0 for c in 'ACGTN'}
-			for i, c in enumerate(seq):
-				self.pattern_mask[seq][c] &= ~(1 << i)
-
-			# Build initial R state (single int; expanded to list per search call)
-			self.initialized_mask[seq] = ~0
-			for j in range(0, len(seq) - min_match + 1):
-				self.initialized_mask[seq] &= ~(1 << j)
-
-
-	#################################
-	# Bitap partial 5' overlap search
-	def __bitap_partial_overlap(self, read, lead, min_match, max_edit):
-		"""
-		Bitap (Shift-Or) search for `lead` overlapping the 5' end of `read`.
-		Detects overlaps of length [min_match, len(lead)] with up to max_edit
-		substitution mismatches.
-
-		Returns on match: {"Match": True, "overlap_length": int, "mismatches": int,
-		                    "anchor_start": int, "read_position": int}
-		Returns on failure: {"Match": False}
-		"""
-		lead = str(lead)
-		read = str(read)
-		m = len(lead)
-
-		pattern_mask = self.pattern_mask[lead]
-		R = [self.initialized_mask[lead]] * (max_edit + 1)
-
-
-		for i, c in enumerate(read):
-			old_R = R[:]
-			mask = pattern_mask.get(c, ~0)
-
-			R[0] = (old_R[0] | mask) << 1
-			for j in range(1, max_edit + 1):
-				R[j] = ((old_R[j] | mask) << 1) & (old_R[j - 1] << 1)
-
-			for j in range(max_edit + 1):
-				if 0 == (R[j] & (1 << m)):
-					overlap_len = i + 1
-					if overlap_len >= min_match:
-						return {
-							"Match": True,
-							"overlap_length": overlap_len,
-							"mismatches": j,
-							"anchor_start": m - overlap_len,
-							"read_position": i,
-						}
-
-		return {"Match": False}
 
 
 	#################################
@@ -203,9 +145,9 @@ class sgRNAsearch:
 		  - a partial 5' overlap: a leader 3' suffix (>= min_match) at the read
 		    start, for reads/fragments that begin inside the leader.
 
-		Prefers the 5'-most end position; ties go to the full-leader hit. Returns
-		the same contract as __bitap_partial_overlap: overlap_length is the number
-		of 5' bases to trim (through the end of the leader), leaving the body.
+		Prefers the 5'-most end position; ties go to the full-leader hit.
+		overlap_length is the number of 5' bases to trim (through the end of the
+		leader), leaving the body.
 		"""
 		read = str(read)
 		lead = str(lead)
@@ -266,7 +208,6 @@ class sgRNAsearch:
 						_qual = _qual[::-1]
 						rev = 1
 
-					# result = self.__bitap_partial_overlap(_read, seq, min_match, max_edit)
 					result = self.__myers_leader_search(_read, seq, min_match, max_edit)
 
 					if result["Match"]:
@@ -341,8 +282,8 @@ class sgRNAsearch:
 			out_handles.append(gzip.open(self.output_files[i], "wt"))
 
 
-		# Build Bitmask for Bitap
-		self.__build_bitmask(min_match, max_edit)
+		# Enforce leader length limit
+		self.__validate_leaders()
 
 
 		next_seq = 0         # Allows for seq iteration

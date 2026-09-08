@@ -29,3 +29,7 @@ __pycache__/
 *.e[0-9][0-9][0-9][0-9]*
 *.o[0-9][0-9][0-9][0-9]*
 [0-9][0-9]-*/
+
+# Bundled reference data ships with the package - never ignore it
+!src/sgRNAtor/data/
+!src/sgRNAtor/data/**
